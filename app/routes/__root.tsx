@@ -4,15 +4,32 @@ import {
   ScrollRestoration,
   createRootRouteWithContext,
 } from '@tanstack/react-router'
+import {
+  ClerkProvider,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/tanstack-start'
+import { getAuth } from '@clerk/tanstack-start/server'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
-import { Meta, Scripts } from '@tanstack/start'
+import { createServerFn, Meta, Scripts } from '@tanstack/start'
 import * as React from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import { DefaultCatchBoundary } from '~/components/error-boundary'
 import { NotFound } from '~/components/not-found'
 import appCss from '~/styles/app.css?url'
 import { seo } from '~/utils/seo'
+import { getWebRequest } from 'vinxi/http'
+
+const fetchClerkAuth = createServerFn({ method: 'GET' }).handler(async () => {
+  const user = await getAuth(getWebRequest())
+
+  return {
+    user,
+  }
+})
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
@@ -55,6 +72,13 @@ export const Route = createRootRouteWithContext<{
       { rel: 'icon', href: '/favicon.ico' },
     ],
   }),
+  beforeLoad: async () => {
+    const { user } = await fetchClerkAuth()
+
+    return {
+      user,
+    }
+  },
   errorComponent: (props) => {
     return (
       <RootDocument>
@@ -68,9 +92,11 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
+    <ClerkProvider>
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+    </ClerkProvider>
   )
 }
 
@@ -132,6 +158,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           >
             This Route Does Not Exist
           </Link>
+          <div className="ml-auto">
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal" />
+            </SignedOut>
+          </div>
         </div>
         <hr />
         {children}

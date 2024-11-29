@@ -16,6 +16,7 @@ import { Route as RedirectImport } from './routes/redirect'
 import { Route as PostsImport } from './routes/posts'
 import { Route as DeferredImport } from './routes/deferred'
 import { Route as LayoutImport } from './routes/_layout'
+import { Route as AuthedImport } from './routes/_authed'
 import { Route as IndexImport } from './routes/index'
 import { Route as UsersIndexImport } from './routes/users.index'
 import { Route as PostsIndexImport } from './routes/posts.index'
@@ -52,6 +53,11 @@ const DeferredRoute = DeferredImport.update({
 
 const LayoutRoute = LayoutImport.update({
   id: '/_layout',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthedRoute = AuthedImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -106,6 +112,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthedImport
       parentRoute: typeof rootRoute
     }
     '/_layout': {
@@ -256,6 +269,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/_authed': typeof AuthedRoute
   '/_layout': typeof LayoutRouteWithChildren
   '/deferred': typeof DeferredRoute
   '/posts': typeof PostsRouteWithChildren
@@ -299,6 +313,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authed'
     | '/_layout'
     | '/deferred'
     | '/posts'
@@ -315,6 +330,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthedRoute: typeof AuthedRoute
   LayoutRoute: typeof LayoutRouteWithChildren
   DeferredRoute: typeof DeferredRoute
   PostsRoute: typeof PostsRouteWithChildren
@@ -325,6 +341,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthedRoute: AuthedRoute,
   LayoutRoute: LayoutRouteWithChildren,
   DeferredRoute: DeferredRoute,
   PostsRoute: PostsRouteWithChildren,
@@ -344,6 +361,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/_authed",
         "/_layout",
         "/deferred",
         "/posts",
@@ -354,6 +372,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/_authed": {
+      "filePath": "_authed.tsx"
     },
     "/_layout": {
       "filePath": "_layout.tsx",
